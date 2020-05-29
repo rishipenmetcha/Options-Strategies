@@ -1,0 +1,25 @@
+{
+  "name": "options-strategies",
+  "version": "1.0.0",
+  "description": "Web application which allows users to visualize various beginner options strategies. Uses an API to create accurate graphs based on live data.",
+  "main": "prices.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rishipenmetcha/Options-Strategies.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rishipenmetcha/Options-Strategies/issues"
+  },
+  "homepage": "https://github.com/rishipenmetcha/Options-Strategies#readme",
+  "dependencies": {
+    "intrinio-sdk": "^5.6.0"
+  },
+  "script": {
+    "script": "node server.js"
+  }
+}
