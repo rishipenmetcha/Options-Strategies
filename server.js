@@ -34,7 +34,7 @@ http.createServer((req, res) => {
     case "/index":
       return sendFile(res, 200, "text/html", "./index.html");
     default:
-      return sendFile(res, 200, "text/html", "./404.html");
+      return sendFile(res, 200, "text/html", "./index.html");
   }
 
 }).listen(3000);
