@@ -6,12 +6,43 @@
 </head>
 
 <body>
-  <h1>The last close price of a stock</h1>
-  <form method="POST" action="/">
-    <label>Enter a ticker on the DJI</label>
-    <input type='text' name='ticker' required>
-    <button>Find Price</button>
-  </form>
+  <h1>Options Strategies</h1>
+  <label>*** The nearest possible strike price and time to expiry will be found ***</label>
+
+  <br>
+
+  <label>Ticker:</label>
+  <input onChange="getDates()" type='text' id='ticker' required>
+
+  <br>
+
+  <label>Type:</label>
+  <select name="type" id="type">
+    <option value="CALL">Call</option>
+    <option value="PUT">Put</option>
+  </select>
+
+  <br>
+  
+  <label>Time to Expiry:</label>
+  <select onChange="getStrikePrices()" name="ttExp" id="ttExp">
+  </select>
+
+  <br>
+
+  <label>Strike:</label>
+  <select name="strike" id="strike">
+  </select>
+
+  <br><br>
+
+  <button onclick="getData()">Find Option Price</button>
+
+
+  <p id='out'></p>
+  <script src="./client.js"></script>
 </body>
+
+
 
 </html>

@@ -2,7 +2,7 @@
   "name": "options-strategies",
   "version": "1.0.0",
   "description": "Web application which allows users to visualize various beginner options strategies. Uses an API to create accurate graphs based on live data.",
-  "main": "prices.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
@@ -17,7 +17,10 @@
   },
   "homepage": "https://github.com/rishipenmetcha/Options-Strategies#readme",
   "dependencies": {
-    "intrinio-sdk": "^5.6.0"
+    "create-react-app": "^3.4.1",
+    "intrinio-sdk": "^5.6.0",
+    "npm": "^6.14.7",
+    "xmlhttprequest": "^1.8.0"
   },
   "script": {
     "script": "node server.js"
