@@ -3,44 +3,46 @@
 
 <head>
   <title>OptionsStrat</title>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 </head>
 
 <body>
   <h1>Options Strategies</h1>
-  <label>*** The nearest possible strike price and time to expiry will be found ***</label>
+  <div class="inputs">
+    <br>
 
-  <br>
+    <label>Ticker:</label>
+    <input onChange="getDates()" type='text' id='ticker' size="8" required>
 
-  <label>Ticker:</label>
-  <input onChange="getDates()" type='text' id='ticker' required>
+    <label>Type:</label>
+    <select name="type" id="type">
+      <option value="CALL">Call</option>
+      <option value="PUT">Put</option>
+    </select>
 
-  <br>
+    <br><br>
 
-  <label>Type:</label>
-  <select name="type" id="type">
-    <option value="CALL">Call</option>
-    <option value="PUT">Put</option>
-  </select>
+    <label>Time to Expiry:</label>
+    <select onChange="getStrikePrices()" name="ttExp" id="ttExp">
+    </select>
 
-  <br>
-  
-  <label>Time to Expiry:</label>
-  <select onChange="getStrikePrices()" name="ttExp" id="ttExp">
-  </select>
+    <label>Strike:</label>
+    <select name="strike" id="strike">
+    </select>
 
-  <br>
+    <button onclick="getData()">Go</button>
+    <p id='out'></p>
 
-  <label>Strike:</label>
-  <select name="strike" id="strike">
-  </select>
+    <br>
 
-  <br><br>
+    <div style="margin:auto;" class="ct-chart"></div>
+    <script src="./graph.js"></script>
+    <script src="./client.js"></script>
 
-  <button onclick="getData()">Find Option Price</button>
+  </div>
 
-
-  <p id='out'></p>
-  <script src="./client.js"></script>
 </body>
 
 

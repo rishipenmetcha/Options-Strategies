@@ -18,8 +18,6 @@ http.createServer((req, res) => {
       }
     });
     req.on("end", () => {
-      console.log("in req.on.end");
-      console.log(JSON.parse(input));
       response = JSON.parse(input);
 
       switch (req.url) {
@@ -43,6 +41,10 @@ http.createServer((req, res) => {
         return sendFile(req, res, 200, "text/html", "./index.html");
       case "/client.js":
         return sendFile(req, res, 200, "text/javascript", "./client.js");
+      case "/graph.js":
+        return sendFile(req, res, 200, "text/javascript", "./graph.js");
+      case "/style.css":
+        return sendFile(req, res, 200, "text/css", "./style.css");
       default:
         return sendFile(req, res, 200, "text/html", "./index.html");
     }
@@ -88,9 +90,9 @@ const getDates = (dataObj) => {
 
 const getStrikePrices = (dataObj) => {
   var resData;
-  for(var i = 0; i < dataObj.data.length; i++) {
-    if(dataObj.data[i].expirationDate === response.ttExp) {
-      if(response.type === 'CALL') {
+  for (var i = 0; i < dataObj.data.length; i++) {
+    if (dataObj.data[i].expirationDate === response.ttExp) {
+      if (response.type === 'CALL') {
         resData = dataObj.data[i].options.CALL
       } else {
         resData = dataObj.data[i].options.PUT
@@ -100,7 +102,9 @@ const getStrikePrices = (dataObj) => {
 
   var strikeArr = [];
   resData.forEach(element => {
-    strikeArr.push(element.strike);
+    if (element.lastPrice) {
+      strikeArr.push(element.strike);
+    }
   });
 
   dataObj.data = strikeArr;
@@ -110,24 +114,21 @@ const getStrikePrices = (dataObj) => {
 
 const getOptionPrice = (dataObj) => {
   var resDataExpType;
-  for(var i = 0; i < dataObj.data.length; i++) {
-    if(dataObj.data[i].expirationDate === response.ttExp) {
-      if(response.type === 'CALL') {
+  for (var i = 0; i < dataObj.data.length; i++) {
+    if (dataObj.data[i].expirationDate === response.ttExp) {
+      if (response.type === 'CALL') {
         resDataExpType = dataObj.data[i].options.CALL
       } else {
         resDataExpType = dataObj.data[i].options.PUT
       }
     }
   }
-  console.log(resDataExpType)
   var optPrice;
-  for(var i = 0; i < resDataExpType.length; i++) {
-    if(resDataExpType[i].strike == response.strikePrice) {
-      console.log('in here?')
+  for (var i = 0; i < resDataExpType.length; i++) {
+    if (resDataExpType[i].strike == response.strikePrice) {
       optPrice = resDataExpType[i].lastPrice;
     }
   }
-  console.log(optPrice)
   dataObj.data = optPrice;
   returnPrice(dataObj)
 }
@@ -140,22 +141,22 @@ const getAPIData = (obj, purpose) => {
   xhr.purp = purpose;
   var secretkey = "5eefd46d9a9a29.74347066";
   var date = new Date();
-  var currDateFormatted = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
-  var nextYearDateFormatted = (date.getFullYear()+1)+'-'+(date.getMonth()+1)+'-'+date.getDate();
-  var url = 'https://eodhistoricaldata.com/api/options/'+response.ticker+'.US?api_token='+secretkey+'&from='+currDateFormatted+'&to='+nextYearDateFormatted;
+  var currDateFormatted = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+  var nextYearDateFormatted = (date.getFullYear() + 1) + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+  var url = 'https://eodhistoricaldata.com/api/options/' + response.ticker + '.US?api_token=' + secretkey + '&from=' + currDateFormatted + '&to=' + nextYearDateFormatted;
   xhr.open('GET', url);
 
   xhr.onload = function () {
     try {
       var APIresponse = this.responseText;
       var parsedData = JSON.parse(APIresponse);
-      
+
       this.reqres.data = parsedData.data;
-      if(this.purp === 'getdates') {
+      if (this.purp === 'getdates') {
         getDates(this.reqres);
-      } else if(this.purp === 'getstrikeprices') {
+      } else if (this.purp === 'getstrikeprices') {
         getStrikePrices(this.reqres);
-      } else if(this.purp === 'getoptionprice') {
+      } else if (this.purp === 'getoptionprice') {
         getOptionPrice(this.reqres);
       }
     }

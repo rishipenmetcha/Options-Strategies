@@ -1,0 +1,36 @@
+* {
+  font-family: 'Courier New';
+}
+
+h1 {
+  position: relative;
+  text-align: center;
+  font-size: 2.25em;
+  line-height:0.0em;
+  margin:0.0em;
+  padding:0em;
+  margin-top: 2.0em;
+}
+
+.inputs {
+  text-align: center;
+  margin-top: 0.5em;
+}
+
+label, button {
+  margin-left: 20px;
+}
+
+#ttExp {
+  width: 105px;
+}
+
+#strike {
+  width: 65px;
+}
+
+.ct-label.ct-horizontal.ct-end {
+  transform: translate(-50%,0);
+    display: block;
+    text-align: center;
+}

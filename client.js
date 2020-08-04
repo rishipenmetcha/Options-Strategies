@@ -1,4 +1,3 @@
-
 const getData = () => {
 
   const tickerInput = document.getElementById('ticker').value;
@@ -6,7 +5,7 @@ const getData = () => {
   const typeInput = document.getElementById('type').value;
   const expiryInput = document.getElementById('ttExp').value;
 
-  if(!(tickerInput && strikeInput && typeInput && expiryInput)) {
+  if (!(tickerInput && strikeInput && typeInput && expiryInput)) {
     alert("Please fill out all inputs!")
     return;
   }
@@ -17,7 +16,10 @@ const getData = () => {
   xhttp.onreadystatechange = function () {
     if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
       // Typical action to be performed when the document is ready:
-      document.getElementById("out").innerHTML = "The price of the option is: " + xhttp.responseText;
+      var optionPrice = xhttp.responseText;
+      document.getElementById("out").innerHTML = "The price of the option is: $" + optionPrice;
+      drawGraph(optionPrice, strikeInput, typeInput);
+
     }
   };
 
@@ -39,13 +41,12 @@ const getDates = () => {
   xhttp.onreadystatechange = function () {
     if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
       // Typical action to be performed when the document is ready:
-      console.log("Got the dates, they should be on the next line");
       var listDates = JSON.parse(xhttp.responseText);
 
-      var select = document.getElementById("ttExp"); 
+      var select = document.getElementById("ttExp");
       select.options.length = 0
 
-      for(var i = 0; i < listDates.length; i++) {
+      for (var i = 0; i < listDates.length; i++) {
         var opt = listDates[i];
         var el = document.createElement("option");
         el.textContent = opt;
@@ -79,13 +80,12 @@ const getStrikePrices = () => {
   xhttp.onreadystatechange = function () {
     if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
       // Typical action to be performed when the document is ready:
-      console.log("Got the dates, they should be on the next line");
       var listStrikePrices = JSON.parse(xhttp.responseText);
 
-      var select = document.getElementById("strike"); 
+      var select = document.getElementById("strike");
       select.options.length = 0
 
-      for(var i = 0; i < listStrikePrices.length; i++) {
+      for (var i = 0; i < listStrikePrices.length; i++) {
         var opt = listStrikePrices[i];
         var el = document.createElement("option");
         el.textContent = opt;
