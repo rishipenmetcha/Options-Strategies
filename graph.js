@@ -28,13 +28,38 @@ const drawGraph = (optionPrice, strikeString, type) => {
         },
         width: '900px',
         height: '550px',
+        chartPadding: {
+            top: 15,
+            right: 15,
+            bottom: 20,
+            left: 30
+        },
         lineSmooth: Chartist.Interpolation.none(),
         showPoint: false,
         showArea: true,
         plugins: [
             Chartist.plugins.ctThreshold({
                 threshold: 0,
-
+            }),
+            Chartist.plugins.ctAxisTitle({
+                axisX: {
+                    axisTitle: "Stock Price($)",
+                    axisClass: "ct-axis-title",
+                    offset: {
+                        x: 0,
+                        y: 40
+                    },
+                    textAnchor: "middle"
+                },
+                axisY: {
+                    axisTitle: "Profit/Loss($)",
+                    axisClass: "ct-axis-title",
+                    offset: {
+                        x: 0,
+                        y: 20
+                    },
+                    flipTitle: true
+                }
             })
         ]
     });
@@ -43,13 +68,17 @@ const drawGraph = (optionPrice, strikeString, type) => {
 const getYTicks = (optionPrice) => {
     rangeExact = optionPrice * 3;
     var tickSize = getYTickSize(rangeExact);
+    console.log(tickSize);
+    console.log("range exact is " + rangeExact);
     const realRange = round(rangeExact, tickSize);
+    console.log(realRange);
     var curr = -realRange;
     var res = [];
     while (curr <= realRange) {
         res.push(curr);
-        curr += tickSize;
+        curr = (curr * 100 + tickSize * 100) / 100;
     }
+    console.log(res);
     return res;
 }
 
@@ -66,14 +95,17 @@ const getXTicks = (central, optionPrice) => {
     var res = [];
     while (curr <= ((central - unadjustedStart) + central)) {
         res.push(curr);
-        curr += realTick;
+        curr = (curr * 100 + realTick * 100) / 100;
     }
     return res;
 }
 
 
 const round = (num, roundVal) => {
-    return Math.round(num / roundVal) * roundVal;
+    const quotientRounded = Math.round(num / roundVal);
+    const res = (quotientRounded * roundVal * 100) / 100;
+    console.log(res);
+    return res;
 }
 
 const getYTickSize = (rangeExact) => {
@@ -190,4 +222,5 @@ const getDataPoints = (strike, xlow, xhigh, optionPrice, type) => {
     }
     return res;
 }
+
 

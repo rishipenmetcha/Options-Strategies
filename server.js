@@ -45,6 +45,8 @@ http.createServer((req, res) => {
         return sendFile(req, res, 200, "text/javascript", "./graph.js");
       case "/chartist-plugin-threshold.js":
         return sendFile(req, res, 200, "text/javascript", "./chartist-plugin-threshold.js");
+      case "/chartist-plugin-axistitle.js":
+        return sendFile(req, res, 200, "text/javascript", "./chartist-plugin-axistitle.js");
       case "/style.css":
         return sendFile(req, res, 200, "text/css", "./style.css");
       default:

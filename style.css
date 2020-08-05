@@ -35,6 +35,7 @@ label, button {
   margin-top: 100px;
 }
 
+
 .ct-label.ct-horizontal.ct-end {
   transform: translate(-50%,0);
     display: block;
