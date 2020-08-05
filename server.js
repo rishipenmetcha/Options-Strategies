@@ -43,6 +43,8 @@ http.createServer((req, res) => {
         return sendFile(req, res, 200, "text/javascript", "./client.js");
       case "/graph.js":
         return sendFile(req, res, 200, "text/javascript", "./graph.js");
+      case "/chartist-plugin-threshold.js":
+        return sendFile(req, res, 200, "text/javascript", "./chartist-plugin-threshold.js");
       case "/style.css":
         return sendFile(req, res, 200, "text/css", "./style.css");
       default:
@@ -50,10 +52,6 @@ http.createServer((req, res) => {
     }
   }
 }).listen(3000);
-
-
-
-
 
 const sendFile = (req, res, status, type, filePath) => {
   res.writeHead(status, { "Content-type": type });

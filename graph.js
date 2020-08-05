@@ -29,7 +29,14 @@ const drawGraph = (optionPrice, strikeString, type) => {
         width: '900px',
         height: '550px',
         lineSmooth: Chartist.Interpolation.none(),
-        showPoint: false
+        showPoint: false,
+        showArea: true,
+        plugins: [
+            Chartist.plugins.ctThreshold({
+                threshold: 0,
+
+            })
+        ]
     });
 }
 
@@ -48,11 +55,16 @@ const getYTicks = (optionPrice) => {
 
 const getXTicks = (central, optionPrice) => {
     const exactTick = ((optionPrice * 6) / 20);
-    const realTick = getXTickSize(exactTick);
+    var realTick = getXTickSize(exactTick);
     var start = round(central - (3 * optionPrice), realTick);
+    const unadjustedStart = start;
+    if (start < 0) {
+        start = 0;
+        realTick = getXTickSize((central + (optionPrice * 3)) / 20);
+    }
     var curr = start;
     var res = [];
-    while (curr <= ((central - start) + central)) {
+    while (curr <= ((central - unadjustedStart) + central)) {
         res.push(curr);
         curr += realTick;
     }

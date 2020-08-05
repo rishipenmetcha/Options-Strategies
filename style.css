@@ -9,7 +9,7 @@ h1 {
   line-height:0.0em;
   margin:0.0em;
   padding:0em;
-  margin-top: 2.0em;
+  margin-top: 1.75em;
 }
 
 .inputs {
@@ -29,8 +29,30 @@ label, button {
   width: 65px;
 }
 
+#xAxisLabel {
+  display: block;
+  transform: rotate(-90deg);
+  margin-top: 100px;
+}
+
 .ct-label.ct-horizontal.ct-end {
   transform: translate(-50%,0);
     display: block;
     text-align: center;
+}
+
+.ct-line.ct-threshold-above, .ct-point.ct-threshold-above, .ct-bar.ct-threshold-above {
+  stroke: #59922b;
+}
+
+.ct-line.ct-threshold-below, .ct-point.ct-threshold-below, .ct-bar.ct-threshold-below {
+  stroke: #f05b4f;
+}
+
+.ct-area.ct-threshold-above {
+  fill: #59922b;
+}
+
+.ct-area.ct-threshold-below {
+  fill: #f05b4f;
 }

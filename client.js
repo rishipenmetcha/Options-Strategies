@@ -20,6 +20,7 @@ const getData = () => {
       document.getElementById("out").innerHTML = "The price of the option is: $" + optionPrice;
       drawGraph(optionPrice, strikeInput, typeInput);
 
+
     }
   };
 
