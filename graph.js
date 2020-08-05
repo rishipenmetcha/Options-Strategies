@@ -68,34 +68,37 @@ const drawGraph = (optionPrice, strikeString, type) => {
 const getYTicks = (optionPrice) => {
     rangeExact = optionPrice * 3;
     var tickSize = getYTickSize(rangeExact);
-    console.log(tickSize);
-    console.log("range exact is " + rangeExact);
     const realRange = round(rangeExact, tickSize);
-    console.log(realRange);
     var curr = -realRange;
     var res = [];
     while (curr <= realRange) {
         res.push(curr);
         curr = (curr * 100 + tickSize * 100) / 100;
     }
-    console.log(res);
     return res;
 }
 
 const getXTicks = (central, optionPrice) => {
-    const exactTick = ((optionPrice * 6) / 20);
+    var exactTick = ((optionPrice * 6) / 20);
     var realTick = getXTickSize(exactTick);
     var start = round(central - (3 * optionPrice), realTick);
-    const unadjustedStart = start;
+    var unadjustedStart = start;
     if (start < 0) {
         start = 0;
         realTick = getXTickSize((central + (optionPrice * 3)) / 20);
     }
     var curr = start;
+    if (curr.toString().length >= 6) {
+        console.log('kong numn');
+        exactTick = ((optionPrice * 6) / 13);
+        realTick = getXTickSize(exactTick);
+        start = round(central - (3 * optionPrice), realTick);
+        var unadjustedStart = start;
+    }
     var res = [];
     while (curr <= ((central - unadjustedStart) + central)) {
         res.push(curr);
-        curr = (curr * 100 + realTick * 100) / 100;
+        curr = (curr * 1000 + realTick * 1000) / 1000;
     }
     return res;
 }
@@ -103,8 +106,7 @@ const getXTicks = (central, optionPrice) => {
 
 const round = (num, roundVal) => {
     const quotientRounded = Math.round(num / roundVal);
-    const res = (quotientRounded * roundVal * 100) / 100;
-    console.log(res);
+    const res = ((quotientRounded * 100) * (roundVal * 100)) / 10000;
     return res;
 }
 
