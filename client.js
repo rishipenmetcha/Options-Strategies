@@ -3,7 +3,7 @@ const getData = () => {
   const tickerInput = document.getElementById('ticker').value;
   const strikeInput = document.getElementById('strike').value;
   const typeInput = document.getElementById('type').value;
-  const expiryInput = document.getElementById('ttExp').value;
+  const expiryInput = fromDisplayDate(document.getElementById('ttExp').value);
 
   if (!(tickerInput && strikeInput && typeInput && expiryInput)) {
     alert("Please fill out all inputs!")
@@ -48,7 +48,7 @@ const getDates = () => {
       select.options.length = 0
 
       for (var i = 0; i < listDates.length; i++) {
-        var opt = listDates[i];
+        const opt = toDisplayDate(listDates[i]);
         var el = document.createElement("option");
         el.textContent = opt;
         el.value = opt;
@@ -99,7 +99,7 @@ const getStrikePrices = () => {
   const tickerInput = document.getElementById('ticker').value;
   const strikeInput = document.getElementById('strike').value;
   const typeInput = document.getElementById('type').value;
-  const expiryInput = document.getElementById('ttExp').value;
+  const expiryInput = fromDisplayDate(document.getElementById('ttExp').value);
 
   const response = {
     ticker: tickerInput,
@@ -109,6 +109,18 @@ const getStrikePrices = () => {
   }
 
   xhttp.send(JSON.stringify(response));
+}
+
+const toDisplayDate = (date) => {
+  const lst = date.split('-');
+  const res = lst[1] + '-' + lst[2] + '-' + lst[0];
+  return res;
+}
+
+const fromDisplayDate = (date) => {
+  const lst = date.split('-');
+  const res = lst[2] + '-' + lst[0] + '-' + lst[1];
+  return res;
 }
 
 
