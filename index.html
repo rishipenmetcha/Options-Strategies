@@ -14,25 +14,37 @@
     <br>
 
     <label>Ticker:</label>
-    <input onChange="getDates()" type='text' id='ticker' size="8" required>
+    <input onChange="tickerUpdated()" type='text' id='ticker' size="8" required>
 
     <label>Type:</label>
-    <select name="type" id="type">
+    <select onChange="getStrikePrices()" name="type" id="type">
       <option value="CALL">Call</option>
       <option value="PUT">Put</option>
+      <option value="STRADDLE">Straddle</option>
+      <option value="STRANGLE">Strangle</option>
+      <option value="BUTTERFLY">Butterfly</option>
+      <option value="IRONCONDOR">Iron Condor</option>
     </select>
 
+    <a id='currentPrice'></a>
     <br><br>
 
-    <label>Time to Expiry:</label>
+
+    <label id="ttExpLabel">Time to Expiry:</label>
     <select onChange="getStrikePrices()" name="ttExp" id="ttExp">
     </select>
 
-    <label>Strike:</label>
+
+    <label id="strikeLabel1">Strike:</label>
     <select name="strike" id="strike">
     </select>
 
+    <label id="strikeLabel2" style="display:none">Call Strike:</label>
+    <select name="strike2" id="strike2" style="display:none">
+    </select>
+
     <button onclick="getData()">Go</button>
+
     <p id='out'></p>
 
     <br>

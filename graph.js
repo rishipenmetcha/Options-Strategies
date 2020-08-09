@@ -1,14 +1,60 @@
 const drawGraph = (optionPrice, strikeString, type) => {
-    const strike = parseInt(strikeString);
+    if (optionPrice.includes('.')) {
+        optionPrice = parseFloat(optionPrice);
+    } else {
+        optionPrice = parseInt(optionPrice);
+    }
+    var strike;
+    if (type === "STRANGLE") {
+        strike = {};
+        if (strikeString.call.includes('.')) {
+            strike.call = parseFloat(strikeString.call);
+        } else {
+            strike.call = parseInt(strikeString.call);
+        }
+        if (strikeString.put.includes('.')) {
+            strike.put = parseFloat(strikeString.put);
+        } else {
+            strike.put = parseInt(strikeString.put);
+        }
+    } else {
+        if (strikeString.includes('.')) {
+            strike = parseFloat(strikeString);
+        } else {
+            strike = parseInt(strikeString);
+        }
+    }
+
     const yticks = getYTicks(optionPrice);
     const ylow = yticks[0];
     const yhigh = yticks[yticks.length - 1];
 
-    const xticks = getXTicks(strike, optionPrice);
+    const xticks = getXTicks(strike, optionPrice, type);
     const xlow = xticks[0];
     const xhigh = xticks[xticks.length - 1];
 
-    const dataPoints = getDataPoints(strike, xlow, xhigh, optionPrice, type);
+    const dataPoints = getDataPoints(strike, xlow, xhigh, ylow, yhigh, optionPrice, type);
+
+    var padding = {
+        top: 15,
+        right: 20,
+        bottom: 20,
+        left: 30
+    };
+
+    // removes 15 pixel buffer at the top if the two edge data points in a strangle are greater than yhigh. 
+    // This will cut off the top tick but it gets the full area shaded green.   
+    if (type === 'STRANGLE') {
+        if (dataPoints[0].y > yhigh || dataPoints[3].y > yhigh) {
+            padding = {
+                top: 0,
+                right: 20,
+                bottom: 20,
+                left: 30
+            };
+        }
+    }
+
 
     new Chartist.Line('.ct-chart', {
         series: [dataPoints]
@@ -28,12 +74,7 @@ const drawGraph = (optionPrice, strikeString, type) => {
         },
         width: '900px',
         height: '550px',
-        chartPadding: {
-            top: 15,
-            right: 15,
-            bottom: 20,
-            left: 30
-        },
+        chartPadding: padding,
         lineSmooth: Chartist.Interpolation.none(),
         showPoint: false,
         showArea: true,
@@ -73,30 +114,58 @@ const getYTicks = (optionPrice) => {
     var res = [];
     while (curr <= realRange) {
         res.push(curr);
-        curr = (curr * 100 + tickSize * 100) / 100;
+        curr = (curr * 1000 + tickSize * 1000) / 1000;
     }
     return res;
 }
 
-const getXTicks = (central, optionPrice) => {
-    var exactTick = ((optionPrice * 6) / 20);
+const getXTicks = (central, optionPrice, type) => {
+    var exactTick;
+    if (type === "STRANGLE") {
+        exactTick = ((optionPrice * 6) + (central.call - central.put)) / 20;
+    } else {
+        exactTick = ((optionPrice * 6) / 20);
+    }
     var realTick = getXTickSize(exactTick);
-    var start = round(central - (3 * optionPrice), realTick);
+    var start;
+    if (type === "STRANGLE") {
+        start = floor(central.put - (3 * optionPrice), realTick);
+    } else {
+        start = floor(central - (3 * optionPrice), realTick);
+    }
+
     var unadjustedStart = start;
     if (start < 0) {
         start = 0;
-        realTick = getXTickSize((central + (optionPrice * 3)) / 20);
+        if (type === "STRANGLE") {
+            realTick = getXTickSize((central.call + (optionPrice * 3)) / 20);
+        } else {
+            realTick = getXTickSize((central + (optionPrice * 3)) / 20);
+        }
     }
     var curr = start;
     if (curr.toString().length >= 6) {
-        console.log('kong numn');
-        exactTick = ((optionPrice * 6) / 13);
+        if (type === "STRANGLE") {
+            exactTick = ((optionPrice * 6) + (central.call - central.put)) / 13;
+        } else {
+            exactTick = ((optionPrice * 6) / 13);
+        }
         realTick = getXTickSize(exactTick);
-        start = round(central - (3 * optionPrice), realTick);
+        if (type === "STRANGLE") {
+            start = floor(central.put - (3 * optionPrice), realTick);
+        } else {
+            start = floor(central - (3 * optionPrice), realTick);
+        }
         var unadjustedStart = start;
     }
     var res = [];
-    while (curr <= ((central - unadjustedStart) + central)) {
+    var max;
+    if (type === "STRANGLE") {
+        max = ceiling(central.call + (optionPrice * 3), realTick);
+    } else {
+        max = ceiling(central + optionPrice * 3, realTick);
+    }
+    while (curr <= max) {
         res.push(curr);
         curr = (curr * 1000 + realTick * 1000) / 1000;
     }
@@ -109,6 +178,20 @@ const round = (num, roundVal) => {
     const res = ((quotientRounded * 100) * (roundVal * 100)) / 10000;
     return res;
 }
+
+const floor = (num, roundVal) => {
+    const floored = Math.floor(num / roundVal);
+    const res = ((floored * 100) * (roundVal * 100)) / 10000;
+    return res;
+}
+
+const ceiling = (num, roundVal) => {
+    const ceiled = Math.ceil(num / roundVal);
+    const res = ((ceiled * 100) * (roundVal * 100)) / 10000;
+    return res;
+}
+
+
 
 const getYTickSize = (rangeExact) => {
     if (rangeExact <= 0.1) {
@@ -207,7 +290,7 @@ const getXTickSize = (exactTick) => {
     return tickSize;
 }
 
-const getDataPoints = (strike, xlow, xhigh, optionPrice, type) => {
+const getDataPoints = (strike, xlow, xhigh, ylow, yhigh, optionPrice, type) => {
     var res = [];
     if (type === 'CALL') {
         res = [
@@ -220,6 +303,30 @@ const getDataPoints = (strike, xlow, xhigh, optionPrice, type) => {
             { x: xlow, y: ((-optionPrice) + (strike - xlow)) },
             { x: strike, y: -optionPrice },
             { x: xhigh, y: -optionPrice },
+        ]
+    } else if (type === 'STRADDLE') {
+        res = [
+            { x: xhigh, y: -optionPrice + (xhigh - strike) },
+            { x: strike, y: -optionPrice },
+            { x: xlow, y: -optionPrice + (strike - xlow) },
+        ]
+    } else if (type === 'STRANGLE') {
+        var edgeMin = -optionPrice + (strike.put - xlow);
+        var edgeMax = -optionPrice + (xhigh - strike.call)
+        // if (edgeMax > yhigh) {
+        //     edgeMax = yhigh;
+        //     xhigh = (yhigh + optionPrice) + strike.call;
+        // }
+        // if (edgeMin > yhigh) {
+        //     edgeMin = yhigh;
+        //     xlow = strike.put - (yhigh + optionPrice);
+        // }
+
+        res = [
+            { x: xlow, y: edgeMin },
+            { x: strike.put, y: -optionPrice },
+            { x: strike.call, y: -optionPrice },
+            { x: xhigh, y: edgeMax }
         ]
     }
     return res;

@@ -25,6 +25,8 @@ http.createServer((req, res) => {
           return processRequest(req, res, 200, "application/json", "getstrikeprices");
         case "/getdates":
           return processRequest(req, res, 200, "application/json", "getdates");
+        case "/getlastprice":
+          return processRequest(req, res, 200, "application/json", "getlastprice");
         case "/processrequest":
           return processRequest(req, res, 200, "application/json", "getoptionprice");
         case "/":
@@ -90,47 +92,83 @@ const getDates = (dataObj) => {
 
 const getStrikePrices = (dataObj) => {
   var resData;
+  var resData2;
   for (var i = 0; i < dataObj.data.length; i++) {
     if (dataObj.data[i].expirationDate === response.ttExp) {
       if (response.type === 'CALL') {
-        resData = dataObj.data[i].options.CALL
-      } else {
-        resData = dataObj.data[i].options.PUT
+        resData = dataObj.data[i].options.CALL;
+      } else if (response.type === 'PUT') {
+        resData = dataObj.data[i].options.PUT;
+      } else if (response.type === 'STRADDLE' || response.type === 'STRANGLE') {
+        resData = dataObj.data[i].options.CALL;
+        resData2 = dataObj.data[i].options.PUT;
       }
     }
   }
 
   var strikeArr = [];
+  var strikeArr2 = [];
   resData.forEach(element => {
     if (element.lastPrice) {
       strikeArr.push(element.strike);
     }
   });
-
+  if (response.type === 'STRADDLE') {
+    resData2.forEach(element => {
+      if (element.lastPrice) {
+        strikeArr2.push(element.strike);
+      }
+    });
+    strikeArr = strikeArr.filter(value => strikeArr2.includes(value));
+  }
   dataObj.data = strikeArr;
+  if (response.type === 'STRANGLE') {
+    resData2.forEach(element => {
+      if (element.lastPrice) {
+        strikeArr2.push(element.strike);
+      }
+    });
+    dataObj.data = { call: strikeArr, put: strikeArr2 };
+  }
   returnPrice(dataObj)
 }
 
 
 const getOptionPrice = (dataObj) => {
   var resDataExpType;
+  var resDataExpType2;
   for (var i = 0; i < dataObj.data.length; i++) {
     if (dataObj.data[i].expirationDate === response.ttExp) {
       if (response.type === 'CALL') {
+        resDataExpType = dataObj.data[i].options.CALL;
+      } else if (response.type === 'PUT') {
+        resDataExpType = dataObj.data[i].options.PUT;
+      } else if (response.type === 'STRADDLE' || response.type === 'STRANGLE') {
         resDataExpType = dataObj.data[i].options.CALL
-      } else {
-        resDataExpType = dataObj.data[i].options.PUT
+        resDataExpType2 = dataObj.data[i].options.PUT;
       }
     }
   }
   var optPrice;
+  var strike = response.strikePrice;
+  if (response.type === 'STRANGLE') strike = response.strikePrice.call;
   for (var i = 0; i < resDataExpType.length; i++) {
-    if (resDataExpType[i].strike == response.strikePrice) {
+    if (resDataExpType[i].strike == strike) {
       optPrice = resDataExpType[i].lastPrice;
     }
   }
+
+  if (response.type === 'STRANGLE') strike = response.strikePrice.put;
+  if (response.type === "STRADDLE" || response.type === "STRANGLE") {
+    for (var i = 0; i < resDataExpType2.length; i++) {
+      if (resDataExpType2[i].strike == strike) {
+        optPrice = ((optPrice * 1000) + (resDataExpType2[i].lastPrice * 1000)) / 1000;
+      }
+    }
+  }
+
   dataObj.data = optPrice;
-  returnPrice(dataObj)
+  returnPrice(dataObj);
 }
 
 
@@ -150,7 +188,6 @@ const getAPIData = (obj, purpose) => {
     try {
       var APIresponse = this.responseText;
       var parsedData = JSON.parse(APIresponse);
-
       this.reqres.data = parsedData.data;
       if (this.purp === 'getdates') {
         getDates(this.reqres);
@@ -158,6 +195,9 @@ const getAPIData = (obj, purpose) => {
         getStrikePrices(this.reqres);
       } else if (this.purp === 'getoptionprice') {
         getOptionPrice(this.reqres);
+      } else if (this.purp === 'getlastprice') {
+        this.reqres.data = parsedData.lastTradePrice;
+        returnPrice(this.reqres);
       }
     }
     catch (e) {

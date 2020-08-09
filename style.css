@@ -14,18 +14,22 @@ h1 {
 
 .inputs {
   text-align: center;
-  margin-top: 0.5em;
+  margin-top: 1em;
 }
 
 label, button {
   margin-left: 20px;
 }
 
+#currentPrice {
+  /* margin-left: 40px; */
+}
+
 #ttExp {
   width: 105px;
 }
 
-#strike {
+#strike, #strike2 {
   width: 65px;
 }
 
