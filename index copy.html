@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OptionsStrat</title>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+</head>
+
+<body>
+  <h1>Options Strategies</h1>
+  <div class="inputs">
+    <div class="leftCol">
+
+      <label>Ticker:</label>
+      <input onChange="tickerUpdated()" type='text' id='ticker' size="8" required>
+
+      <br><br>
+      <label id="ttExpLabel">Time to Expiry:</label>
+      <select onChange="getStrikePrices()" name="ttExp" id="ttExp">
+      </select>
+
+
+      <a id='currentPrice'></a>
+
+    </div>
+    <div class="midCol">
+      <label>Type:</label>
+      <select onChange="getStrikePrices()" name="type" id="type">
+        <option value="CALL">Call</option>
+        <option value="PUT">Put</option>
+        <option value="STRADDLE">Straddle</option>
+        <option value="STRANGLE">Strangle</option>
+        <option value="BUTTERFLY">Butterfly</option>
+        <option value="IRONCONDOR">Iron Condor</option>
+      </select>
+
+      <br><br>
+
+      <label id="strikeLabel1">Strike:</label>
+      <select name="strike" id="strike">
+      </select>
+    </div>
+
+
+    <div class="rightCol">
+
+      <a id='currentPrice'></a>
+
+      <br><br>
+
+      <label id="strikeLabel2" style="display:none">Call Strike:</label>
+      <select name="strike2" id="strike2" style="display:none">
+      </select>
+    </div>
+
+    <div class="rightRightCol">
+      <button onclick="getData()">Go</button>
+    </div>
+  </div>
+
+
+  <p id='out'></p>
+
+  <br>
+  <div style="margin:auto;" class="ct-chart" id="graph"></div>
+  <script src="./graph.js"></script>
+  <script src="./client.js"></script>
+  <script src="./chartist-plugin-threshold.js"></script>
+  <script src="./chartist-plugin-axistitle.js"></script>
+
+
+</body>
+
+
+
+</html>

@@ -8,14 +8,13 @@
   <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 </head>
 
-<body>
+<body onload="emptyGraph()">
   <h1>Options Strategies</h1>
   <div class="inputs">
-    <br>
-
     <label>Ticker:</label>
     <input onChange="tickerUpdated()" type='text' id='ticker' size="8" required>
-
+    <br><br>
+    <label id='currentPrice'></label>
     <label>Type:</label>
     <select onChange="getStrikePrices()" name="type" id="type">
       <option value="CALL">Call</option>
@@ -25,38 +24,38 @@
       <option value="BUTTERFLY">Butterfly</option>
       <option value="IRONCONDOR">Iron Condor</option>
     </select>
-
-    <a id='currentPrice'></a>
     <br><br>
-
-
-    <label id="ttExpLabel">Time to Expiry:</label>
+    <label id="ttExpLabel">Expiry:</label>
     <select onChange="getStrikePrices()" name="ttExp" id="ttExp">
     </select>
-
-
+    <br><br>
     <label id="strikeLabel1">Strike:</label>
-    <select name="strike" id="strike">
+    <select onChange="updateStrikes()" name="strike" id="strike">
     </select>
-
-    <label id="strikeLabel2" style="display:none">Call Strike:</label>
-    <select name="strike2" id="strike2" style="display:none">
+    <br><br>
+    <label id="strikeLabel2" style="display:none"></label>
+    <select onChange="updateStrikes2()" name="strike2" id="strike2" style="display:none">
     </select>
-
+    <br><br>
+    <label id="strikeLabel3" style="display:none"></label>
+    <select name="strike3" id="strike3" style="display:none">
+    </select>
+    <br><br>
+    <label id="strikeLabel4" style="display:none"></label>
+    <select name="strike4" id="strike4" style="display:none">
+    </select>
+    <br><br>
     <button onclick="getData()">Go</button>
-
-    <p id='out'></p>
-
-    <br>
-    <div style="margin:auto;" class="ct-chart" id="graph"></div>
+    <br><br>
+    <label id='out'></label>
+    <br><br><br><br><br><br>
+    <label id='description'>[Insert Description]<label>
+  </div>
+  <div class="ct-chart" id="graph"></div>
     <script src="./graph.js"></script>
     <script src="./client.js"></script>
     <script src="./chartist-plugin-threshold.js"></script>
     <script src="./chartist-plugin-axistitle.js"></script>
-
-
-
-  </div>
 
 </body>
 

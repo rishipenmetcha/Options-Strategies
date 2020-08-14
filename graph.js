@@ -1,31 +1,23 @@
 const drawGraph = (optionPrice, strikeString, type) => {
-    if (optionPrice.includes('.')) {
-        optionPrice = parseFloat(optionPrice);
-    } else {
-        optionPrice = parseInt(optionPrice);
-    }
+    optionPrice = Number(optionPrice);
     var strike;
+
+    // For butterfly it is not actually call and put but wanted to reuse the same
+    // logic.
     if (type === "STRANGLE") {
         strike = {};
-        if (strikeString.call.includes('.')) {
-            strike.call = parseFloat(strikeString.call);
-        } else {
-            strike.call = parseInt(strikeString.call);
-        }
-        if (strikeString.put.includes('.')) {
-            strike.put = parseFloat(strikeString.put);
-        } else {
-            strike.put = parseInt(strikeString.put);
-        }
+        strike.call = Number(strikeString.call);
+        strike.put = Number(strikeString.put);
+    } else if(type === "BUTTERFLY") {
+        strike = {};
+        strike.call = Number(strikeString.highcall);
+        strike.put = Number(strikeString.lowcall);
+        strike.short = Number(strikeString.shortcall);
     } else {
-        if (strikeString.includes('.')) {
-            strike = parseFloat(strikeString);
-        } else {
-            strike = parseInt(strikeString);
-        }
+        strike = Number(strikeString);
     }
 
-    const yticks = getYTicks(optionPrice);
+    const yticks = getYTicks(optionPrice, strike, type);
     const ylow = yticks[0];
     const yhigh = yticks[yticks.length - 1];
 
@@ -54,7 +46,6 @@ const drawGraph = (optionPrice, strikeString, type) => {
             };
         }
     }
-
 
     new Chartist.Line('.ct-chart', {
         series: [dataPoints]
@@ -95,7 +86,7 @@ const drawGraph = (optionPrice, strikeString, type) => {
                 axisY: {
                     axisTitle: "Profit/Loss($)",
                     axisClass: "ct-axis-title",
-                    offset: {
+                    offset: { 
                         x: 0,
                         y: 20
                     },
@@ -106,8 +97,15 @@ const drawGraph = (optionPrice, strikeString, type) => {
     });
 }
 
-const getYTicks = (optionPrice) => {
+const getYTicks = (optionPrice, strike, type) => {
     rangeExact = optionPrice * 3;
+    if(type === "BUTTERFLY") {
+        console.log("In butter type resize y");
+        rangeExact = ((strike.short-strike.put) - optionPrice) * 1.5;
+        if(optionPrice*1.5 > rangeExact) {
+            rangeExact = optionPrice*1.5;
+        }
+    }
     var tickSize = getYTickSize(rangeExact);
     const realRange = round(rangeExact, tickSize);
     var curr = -realRange;
@@ -121,14 +119,14 @@ const getYTicks = (optionPrice) => {
 
 const getXTicks = (central, optionPrice, type) => {
     var exactTick;
-    if (type === "STRANGLE") {
+    if (type === "STRANGLE" || type === "BUTTERFLY") {
         exactTick = ((optionPrice * 6) + (central.call - central.put)) / 20;
     } else {
         exactTick = ((optionPrice * 6) / 20);
     }
     var realTick = getXTickSize(exactTick);
     var start;
-    if (type === "STRANGLE") {
+    if (type === "STRANGLE" || type === "BUTTERFLY") {
         start = floor(central.put - (3 * optionPrice), realTick);
     } else {
         start = floor(central - (3 * optionPrice), realTick);
@@ -137,7 +135,7 @@ const getXTicks = (central, optionPrice, type) => {
     var unadjustedStart = start;
     if (start < 0) {
         start = 0;
-        if (type === "STRANGLE") {
+        if (type === "STRANGLE" || type === "BUTTERFLY") {
             realTick = getXTickSize((central.call + (optionPrice * 3)) / 20);
         } else {
             realTick = getXTickSize((central + (optionPrice * 3)) / 20);
@@ -145,13 +143,13 @@ const getXTicks = (central, optionPrice, type) => {
     }
     var curr = start;
     if (curr.toString().length >= 6) {
-        if (type === "STRANGLE") {
+        if (type === "STRANGLE" || type === "BUTTERFLY") {
             exactTick = ((optionPrice * 6) + (central.call - central.put)) / 13;
         } else {
             exactTick = ((optionPrice * 6) / 13);
         }
         realTick = getXTickSize(exactTick);
-        if (type === "STRANGLE") {
+        if (type === "STRANGLE" || type === "BUTTERFLY") {
             start = floor(central.put - (3 * optionPrice), realTick);
         } else {
             start = floor(central - (3 * optionPrice), realTick);
@@ -160,14 +158,14 @@ const getXTicks = (central, optionPrice, type) => {
     }
     var res = [];
     var max;
-    if (type === "STRANGLE") {
+    if (type === "STRANGLE" || type === "BUTTERFLY") {
         max = ceiling(central.call + (optionPrice * 3), realTick);
     } else {
         max = ceiling(central + optionPrice * 3, realTick);
     }
     while (curr <= max) {
         res.push(curr);
-        curr = (curr * 1000 + realTick * 1000) / 1000;
+        curr = (curr * 10000 + realTick * 10000) / 10000;
     }
     return res;
 }
@@ -313,20 +311,19 @@ const getDataPoints = (strike, xlow, xhigh, ylow, yhigh, optionPrice, type) => {
     } else if (type === 'STRANGLE') {
         var edgeMin = -optionPrice + (strike.put - xlow);
         var edgeMax = -optionPrice + (xhigh - strike.call)
-        // if (edgeMax > yhigh) {
-        //     edgeMax = yhigh;
-        //     xhigh = (yhigh + optionPrice) + strike.call;
-        // }
-        // if (edgeMin > yhigh) {
-        //     edgeMin = yhigh;
-        //     xlow = strike.put - (yhigh + optionPrice);
-        // }
-
         res = [
             { x: xlow, y: edgeMin },
             { x: strike.put, y: -optionPrice },
             { x: strike.call, y: -optionPrice },
             { x: xhigh, y: edgeMax }
+        ]
+    } else if (type === 'BUTTERFLY') {
+        res = [
+            {x:xlow, y:-optionPrice},
+            {x:strike.put, y:-optionPrice},
+            {x:strike.short, y:(strike.short-strike.put) - optionPrice},
+            {x:strike.call, y:-optionPrice},
+            {x:xhigh, y:-optionPrice}
         ]
     }
     return res;

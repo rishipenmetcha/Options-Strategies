@@ -1,4 +1,4 @@
-var http = require('http');
+const http = require('http');
 var fs = require('fs');
 var querystring = require("querystring");
 var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
@@ -10,6 +10,7 @@ var response;
 http.createServer((req, res) => {
   if (req.method === "POST") {
     let input = "";
+
     req.on("data", data => {
       input += data;
       if (input.length > 1e6) {
@@ -17,9 +18,9 @@ http.createServer((req, res) => {
         request.connection.destroy();
       }
     });
+
     req.on("end", () => {
       response = JSON.parse(input);
-
       switch (req.url) {
         case "/getstrikeprices":
           return processRequest(req, res, 200, "application/json", "getstrikeprices");
@@ -37,6 +38,7 @@ http.createServer((req, res) => {
           return sendFile(req, res, 200, "text/html", "./index.html");
       }
     });
+
   } else {
     switch (req.url) {
       case "/":
@@ -55,7 +57,7 @@ http.createServer((req, res) => {
         return sendFile(req, res, 200, "text/html", "./index.html");
     }
   }
-}).listen(3000);
+}).listen(8080);
 
 const sendFile = (req, res, status, type, filePath) => {
   res.writeHead(status, { "Content-type": type });
@@ -95,7 +97,7 @@ const getStrikePrices = (dataObj) => {
   var resData2;
   for (var i = 0; i < dataObj.data.length; i++) {
     if (dataObj.data[i].expirationDate === response.ttExp) {
-      if (response.type === 'CALL') {
+      if (response.type === 'CALL' || response.type === 'BUTTERFLY') {
         resData = dataObj.data[i].options.CALL;
       } else if (response.type === 'PUT') {
         resData = dataObj.data[i].options.PUT;
@@ -139,7 +141,7 @@ const getOptionPrice = (dataObj) => {
   var resDataExpType2;
   for (var i = 0; i < dataObj.data.length; i++) {
     if (dataObj.data[i].expirationDate === response.ttExp) {
-      if (response.type === 'CALL') {
+      if (response.type === 'CALL' || response.type === 'BUTTERFLY') {
         resDataExpType = dataObj.data[i].options.CALL;
       } else if (response.type === 'PUT') {
         resDataExpType = dataObj.data[i].options.PUT;
@@ -152,9 +154,32 @@ const getOptionPrice = (dataObj) => {
   var optPrice;
   var strike = response.strikePrice;
   if (response.type === 'STRANGLE') strike = response.strikePrice.call;
+  if (response.type === 'BUTTERFLY') strike = response.strikePrice.lowcall.toString();
+
   for (var i = 0; i < resDataExpType.length; i++) {
     if (resDataExpType[i].strike == strike) {
+      console.log(resDataExpType[i]);
       optPrice = resDataExpType[i].lastPrice;
+      console.log(optPrice);
+    }
+  }
+
+  if (response.type === 'BUTTERFLY') {
+    strike = response.strikePrice.shortcall.toString();
+    for (var i = 0; i < resDataExpType.length; i++) {
+      if (resDataExpType[i].strike == strike) {
+        console.log(resDataExpType[i]);
+        optPrice = ((optPrice * 1000) - (resDataExpType[i].lastPrice * 2000)) / 1000;
+        console.log(optPrice);
+      }
+    }
+    strike = response.strikePrice.highcall.toString();
+    for (var i = 0; i < resDataExpType.length; i++) {
+      if (resDataExpType[i].strike == strike) {
+        console.log(resDataExpType[i]);
+        optPrice = ((optPrice * 1000) + (resDataExpType[i].lastPrice * 1000)) / 1000;
+        console.log(optPrice);
+      }
     }
   }
 
