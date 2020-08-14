@@ -145,7 +145,6 @@ const getStrikePrices = () => {
       }
 
       for (var i = 0; i < listStrikePrices.length; i++) {
-        
         var opt = listStrikePrices[i];
         var el = document.createElement("option");
         el.textContent = opt;
