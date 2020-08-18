@@ -8,11 +8,17 @@ const drawGraph = (optionPrice, strikeString, type) => {
         strike = {};
         strike.call = Number(strikeString.call);
         strike.put = Number(strikeString.put);
-    } else if(type === "BUTTERFLY") {
+    } else if (type === "BUTTERFLY") {
         strike = {};
         strike.call = Number(strikeString.highcall);
         strike.put = Number(strikeString.lowcall);
         strike.short = Number(strikeString.shortcall);
+    } else if (type === "IRONCONDOR") {
+        strike = {};
+        strike.lowput = Number(strikeString.lowput);
+        strike.shortput = Number(strikeString.shortput);
+        strike.shortcall = Number(strikeString.shortcall);
+        strike.highcall = Number(strikeString.highcall);
     } else {
         strike = Number(strikeString);
     }
@@ -86,7 +92,7 @@ const drawGraph = (optionPrice, strikeString, type) => {
                 axisY: {
                     axisTitle: "Profit/Loss($)",
                     axisClass: "ct-axis-title",
-                    offset: { 
+                    offset: {
                         x: 0,
                         y: 20
                     },
@@ -99,11 +105,15 @@ const drawGraph = (optionPrice, strikeString, type) => {
 
 const getYTicks = (optionPrice, strike, type) => {
     rangeExact = optionPrice * 3;
-    if(type === "BUTTERFLY") {
-        console.log("In butter type resize y");
-        rangeExact = ((strike.short-strike.put) - optionPrice) * 1.5;
-        if(optionPrice*1.5 > rangeExact) {
-            rangeExact = optionPrice*1.5;
+    if (type === "BUTTERFLY") {
+        rangeExact = ((strike.short - strike.put) - optionPrice) * 1.5;
+        if (optionPrice * 1.5 > rangeExact) {
+            rangeExact = optionPrice * 1.5;
+        }
+    } else if (type === "IRONCONDOR") {
+        rangeExact = -optionPrice * 1.5;
+        if ((strike.shortput - strike.lowput + optionPrice) * 1.5 > rangeExact) {
+            rangeExact = (strike.shortput - strike.lowput + optionPrice) * 1.5;
         }
     }
     var tickSize = getYTickSize(rangeExact);
@@ -121,6 +131,8 @@ const getXTicks = (central, optionPrice, type) => {
     var exactTick;
     if (type === "STRANGLE" || type === "BUTTERFLY") {
         exactTick = ((optionPrice * 6) + (central.call - central.put)) / 20;
+    } else if (type === "IRONCONDOR") {
+        exactTick = ((central.highcall - central.lowput) * 1.5) / 20;
     } else {
         exactTick = ((optionPrice * 6) / 20);
     }
@@ -128,6 +140,9 @@ const getXTicks = (central, optionPrice, type) => {
     var start;
     if (type === "STRANGLE" || type === "BUTTERFLY") {
         start = floor(central.put - (3 * optionPrice), realTick);
+    } else if (type === "IRONCONDOR") {
+        var tempStart = ((central.shortcall + central.shortput) / 2) - (((central.highcall - central.lowput) * 1.5) / 2);
+        start = floor(tempStart, realTick);
     } else {
         start = floor(central - (3 * optionPrice), realTick);
     }
@@ -137,6 +152,8 @@ const getXTicks = (central, optionPrice, type) => {
         start = 0;
         if (type === "STRANGLE" || type === "BUTTERFLY") {
             realTick = getXTickSize((central.call + (optionPrice * 3)) / 20);
+        } else if (type === "IRONCONDOR") {
+            realTick = getXTickSize((((central.shortcall + central.shortput) / 2) + (((central.highcall - central.lowput) * 1.5) / 2)) / 20);
         } else {
             realTick = getXTickSize((central + (optionPrice * 3)) / 20);
         }
@@ -145,12 +162,17 @@ const getXTicks = (central, optionPrice, type) => {
     if (curr.toString().length >= 6) {
         if (type === "STRANGLE" || type === "BUTTERFLY") {
             exactTick = ((optionPrice * 6) + (central.call - central.put)) / 13;
+        } else if (type === "IRONCONDOR") {
+            exactTick = ((central.highcall - central.lowput) * 1.5) / 13;
         } else {
             exactTick = ((optionPrice * 6) / 13);
         }
         realTick = getXTickSize(exactTick);
         if (type === "STRANGLE" || type === "BUTTERFLY") {
             start = floor(central.put - (3 * optionPrice), realTick);
+        } else if (type === "IRONCONDOR") {
+            var tempStart = ((central.shortcall + central.shortput) / 2) - (((central.highcall - central.lowput) * 1.5) / 2);
+            start = floor(tempStart, realTick);
         } else {
             start = floor(central - (3 * optionPrice), realTick);
         }
@@ -160,12 +182,14 @@ const getXTicks = (central, optionPrice, type) => {
     var max;
     if (type === "STRANGLE" || type === "BUTTERFLY") {
         max = ceiling(central.call + (optionPrice * 3), realTick);
+    } else if (type === "IRONCONDOR") {
+        max = ceiling(((central.shortcall + central.shortput) / 2) + (((central.highcall - central.lowput) * 1.5) / 2), realTick);
     } else {
         max = ceiling(central + optionPrice * 3, realTick);
     }
     while (curr <= max) {
         res.push(curr);
-        curr = (curr * 10000 + realTick * 10000) / 10000;
+        curr = (curr * 1000000 + realTick * 1000000) / 1000000;
     }
     return res;
 }
@@ -319,11 +343,25 @@ const getDataPoints = (strike, xlow, xhigh, ylow, yhigh, optionPrice, type) => {
         ]
     } else if (type === 'BUTTERFLY') {
         res = [
-            {x:xlow, y:-optionPrice},
-            {x:strike.put, y:-optionPrice},
-            {x:strike.short, y:(strike.short-strike.put) - optionPrice},
-            {x:strike.call, y:-optionPrice},
-            {x:xhigh, y:-optionPrice}
+            { x: xlow, y: -optionPrice },
+            { x: strike.put, y: -optionPrice },
+            { x: strike.short, y: (strike.short - strike.put) - optionPrice },
+            { x: strike.call, y: -optionPrice },
+            { x: xhigh, y: -optionPrice }
+        ]
+    } else if (type === 'IRONCONDOR') {
+        var loss = -optionPrice - (strike.shortput - strike.lowput);
+        if (loss >= 0) {
+            alert('Please pick a new combination of strike, prices are not up to date.');
+            return;
+        }
+        res = [
+            { x: xlow, y: loss },
+            { x: strike.lowput, y: loss },
+            { x: strike.shortput, y: -optionPrice },
+            { x: strike.shortcall, y: -optionPrice },
+            { x: strike.highcall, y: loss },
+            { x: xhigh, y: loss }
         ]
     }
     return res;

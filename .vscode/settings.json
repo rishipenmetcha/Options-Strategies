@@ -3,6 +3,6 @@
     "node_modules{,/**}",
     ".vscode{,/**}"
   ],
-  "appService.defaultWebAppToDeploy": "/subscriptions/f064407a-95a1-4dc4-a4fb-c6238d43a378/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/optionstrategies",
-  "appService.deploySubpath": "."
+  "appService.deploySubpath": ".",
+  "appService.defaultWebAppToDeploy": "/subscriptions/f064407a-95a1-4dc4-a4fb-c6238d43a378/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/optionstrategies"
 }

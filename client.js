@@ -1,5 +1,5 @@
 const emptyGraph = () => {
-  drawGraph(0,0,"EMPTY");
+  drawGraph(0, 0, "EMPTY");
 }
 
 
@@ -39,10 +39,16 @@ const getData = () => {
       return;
     }
     if (strikeInput3 <= strikeInput2) {
-      if(typeInput === 'BUTTERFLY') alert("High call strike must be greater than the short strike");
+      if (typeInput === 'BUTTERFLY') alert("High call strike must be greater than the short strike");
       return;
     }
-    strikeInput = { shortcall: strikeInput, lowcall: strikeInput2, highcall: strikeInput3};
+    strikeInput = { shortcall: strikeInput, lowcall: strikeInput2, highcall: strikeInput3 };
+  } else if (typeInput === 'IRONCONDOR') {
+    if (!(tickerInput && strikeInput && strikeInput2 && strikeInput3 && strikeInput4 && typeInput && expiryInput)) {
+      alert("Please fill out all inputs!")
+      return;
+    }
+    strikeInput = { lowput: strikeInput, shortput: strikeInput2, shortcall: strikeInput3, highcall: strikeInput4 };
   }
 
 
@@ -52,12 +58,28 @@ const getData = () => {
     if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
       // Typical action to be performed when the document is ready:
       var optionPrice = xhttp.responseText;
-      if(Number(optionPrice) <= 0 || strikeInput.shortcall-strikeInput.lowcall-Number(optionPrice) <= 0) {
-        alert('Please pick a new combination of strike, prices are not up to date.');
-        return;
+      if (typeInput === 'BUTTERFLY') {
+        if (Number(optionPrice) <= 0 || strikeInput.shortcall - strikeInput.lowcall - Number(optionPrice) <= 0) {
+          alert('Please pick a new combination of strike, prices are not up to date.');
+          return;
+        }
       }
 
-      document.getElementById("out").innerHTML = "Option(s) Price: $" + optionPrice;
+      if (typeInput === 'IRONCONDOR') {
+        if (Number(optionPrice >= 0)) {
+          alert('Please pick a new combination of strike, prices are not up to date.');
+          return;
+        }
+      }
+
+      console.log(optionPrice);
+
+      roundedOpt = (optionPrice * 100000) / 100000;
+      if (Number(optionPrice < 0)) {
+        document.getElementById("out").innerHTML = "Option(s) Cost: -$" + -roundedOpt;
+      } else {
+        document.getElementById("out").innerHTML = "Option(s) Cost: $" + roundedOpt;
+      }
 
       drawGraph(optionPrice, strikeInput, typeInput);
 
@@ -114,13 +136,13 @@ const getDates = () => {
 
 
 const getStrikePrices = () => {
+  updateInfoLink();
   var xhttp = new XMLHttpRequest();
   xhttp.open("POST", "./getstrikeprices", true);
   xhttp.onreadystatechange = function () {
     if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
       // Typical action to be performed when the document is ready:
       var listStrikePrices = JSON.parse(xhttp.responseText);
-      console.log("strike prices fun called");
       var select = document.getElementById("strike");
       var select2 = document.getElementById("strike2");
       var select3 = document.getElementById("strike3");
@@ -130,10 +152,11 @@ const getStrikePrices = () => {
       select3.options.length = 0
       select4.options.length = 0
 
+      // Updates only if it is Strangle
       if (typeInput === "STRANGLE") {
         var listStrikePrices2 = listStrikePrices.call;
-        var select2 = document.getElementById("strike2");
-        select2.options.length = 0
+        // var select2 = document.getElementById("strike2");
+        // select2.options.length = 0
         listStrikePrices = listStrikePrices.put;
         for (var i = 0; i < listStrikePrices2.length; i++) {
           var opt = listStrikePrices2[i];
@@ -144,6 +167,20 @@ const getStrikePrices = () => {
         }
       }
 
+      // Updates only if it is Iron Condor
+      if (typeInput === 'IRONCONDOR') {
+        listStrikePrices2 = listStrikePrices.call;
+        for (var i = 0; i < listStrikePrices2.length; i++) {
+          var opt = listStrikePrices2[i];
+          var el = document.createElement("option");
+          el.textContent = opt;
+          el.value = opt;
+          select3.appendChild(el);
+        }
+        listStrikePrices = listStrikePrices.put;
+      }
+
+      // Updates for all types
       for (var i = 0; i < listStrikePrices.length; i++) {
         var opt = listStrikePrices[i];
         var el = document.createElement("option");
@@ -161,6 +198,12 @@ const getStrikePrices = () => {
 
   var b1 = document.createElement("br");
   var b2 = document.createElement("br");
+
+  document.getElementById("arrow1").style.display = "none";
+  document.getElementById("arrow2").style.display = "none";
+  document.getElementById("arrow3").style.display = "none";
+  document.getElementById("arrow4").style.display = "none";
+
 
   if (typeInput === "STRANGLE") {
     document.getElementById("strikeLabel2").style.display = "inline";
@@ -181,6 +224,7 @@ const getStrikePrices = () => {
     document.getElementById("strikeLabel1").innerHTML = "Short Call Strike:";
     document.getElementById("strikeLabel2").innerHTML = "Low Call Strike:";
     document.getElementById("strikeLabel3").innerHTML = "High Call Strike:";
+    document.getElementById("arrow1").style.display = "inline";
   } else if (typeInput === "IRONCONDOR") {
     document.getElementById("strikeLabel2").style.display = "inline";
     document.getElementById("strike2").style.display = "inline";
@@ -192,6 +236,7 @@ const getStrikePrices = () => {
     document.getElementById("strikeLabel2").innerHTML = "Short Put Strike:";
     document.getElementById("strikeLabel3").innerHTML = "Short Call Strike:";
     document.getElementById("strikeLabel4").innerHTML = "High Call Strike:";
+    document.getElementById("arrow1").style.display = "inline";
   } else {
     document.getElementById("strikeLabel2").style.display = "none";
     document.getElementById("strike2").style.display = "none";
@@ -226,7 +271,7 @@ const getLastPrice = () => {
 
       var lastPriceElem = document.getElementById("currentPrice");
       lastPriceElem.innerHTML = "Last Close: $" + lastPrice;
-      lastPriceElem.append(b1,b2);
+      lastPriceElem.append(b1, b2);
     }
   };
 
@@ -246,7 +291,10 @@ const getLastPrice = () => {
 const updateStrikes = () => {
   const typeInput = document.getElementById('type').value;
   var strikeInput = document.getElementById('strike').value;
-  if(typeInput === "BUTTERFLY") {
+  var select2 = document.getElementById("strike2");
+  select2.options.length = 0;
+  if (typeInput === "BUTTERFLY") {
+    document.getElementById("arrow1").style.display = "none";
     var lowArr = []
     strikeInput = Number(strikeInput);
     var allStrikes = Array.from(document.getElementById('strike').options);
@@ -254,9 +302,9 @@ const updateStrikes = () => {
     var tempArr = allStrikes;
     allStrikes.forEach(element => {
       var diff = strikeInput - element;
-      if(element < strikeInput) {
-        if(tempArr.includes((strikeInput + diff).toString())) {
-        lowArr.push(element);
+      if (element < strikeInput) {
+        if (tempArr.includes((strikeInput + diff).toString())) {
+          lowArr.push(element);
         }
       }
     });
@@ -268,24 +316,42 @@ const updateStrikes = () => {
       var el = document.createElement("option");
       el.textContent = opt;
       el.value = opt;
-      if(i === 0) {
-        console.log("Firsy strike")
+      if (i === 0) {
         el.selected = true;
       }
       select2.appendChild(el);
     }
     updateStrikes2();
   }
+  if (typeInput === 'IRONCONDOR') {
+    document.getElementById("arrow1").style.display = "none";
+    document.getElementById("arrow2").style.display = "inline";
+    document.getElementById("arrow3").style.display = "none";
+
+
+    var allStrikes = Array.from(document.getElementById('strike').options);
+    allStrikes = allStrikes.map(x => x.value);
+    allStrikes.forEach(element => {
+      var el = document.createElement("option");
+      el.textContent = element;
+      el.value = element;
+      select2.appendChild(el);
+    })
+  }
+
+
 }
 
 const updateStrikes2 = () => {
   const typeInput = document.getElementById('type').value;
   var strikeInput = document.getElementById('strike').value;
   var strikeInput2 = document.getElementById('strike2').value;
-  if(typeInput === "BUTTERFLY") {
-    var select3 = document.getElementById("strike3");
-    select3.options.length = 0;
-    var opt = (Number(strikeInput) - Number(strikeInput2)) + Number(strikeInput);
+  var callStrikes = Array.from(document.getElementById('strike3').options);
+  var select3 = document.getElementById("strike3");
+
+
+  if (typeInput === "BUTTERFLY") {
+    var opt = ((Number(strikeInput) * 1000 - Number(strikeInput2) * 1000) + Number(strikeInput) * 1000) / 1000;
     console.log(opt);
     var el = document.createElement("option");
     el.textContent = opt;
@@ -294,6 +360,95 @@ const updateStrikes2 = () => {
     select3.appendChild(el);
   }
 
+  if (typeInput === "IRONCONDOR") {
+    document.getElementById("arrow1").style.display = "none";
+    document.getElementById("arrow2").style.display = "none";
+    document.getElementById("arrow3").style.display = "inline";
+
+    callStrikes = callStrikes.map(x => x.value);
+    var spread = (Number(strikeInput2) * 1000 - Number(strikeInput) * 1000) / 1000;
+    if (spread <= 0) {
+      alert("Short put strike has to be greater than low put strike");
+      document.getElementById("arrow3").style.display = "none";
+      document.getElementById("arrow2").style.display = "inline";
+      return;
+    }
+    select3.options.length = 0;
+    var tempArr = callStrikes;
+    console.log(tempArr);
+    var res = [];
+    callStrikes.forEach(element => {
+      var num = (Number(element) * 1000 + spread * 1000) / 1000;
+      if (tempArr.includes(num + "")) {
+        res.push(element);
+      }
+    });
+    console.log(res);
+    res.forEach(element => {
+      var el = document.createElement("option");
+      el.textContent = element;
+      el.value = element;
+      select3.appendChild(el);
+    });
+  }
+}
+
+const updateStrikes3 = () => {
+  const typeInput = document.getElementById('type').value;
+  var strikeInput = document.getElementById('strike').value;
+  var strikeInput2 = document.getElementById('strike2').value;
+  var strikeInput3 = document.getElementById('strike3').value;
+  var select4 = document.getElementById("strike4");
+  select4.options.length = 0;
+  document.getElementById("arrow1").style.display = "none";
+  document.getElementById("arrow2").style.display = "none";
+  document.getElementById("arrow3").style.display = "none";
+
+
+  if (typeInput === 'IRONCONDOR') {
+    if (Number(strikeInput3) <= Number(strikeInput2)) {
+      alert("Short call strike must be greater than short put strike");
+      document.getElementById("arrow3").style.display = "inline";
+      return;
+    }
+    var res = (Number(strikeInput2) * 1000 - Number(strikeInput) * 1000 + Number(strikeInput3) * 1000) / 1000;
+    var el = document.createElement("option");
+    el.textContent = res + "";
+    el.value = res + "";
+    select4.appendChild(el);
+  }
+}
+
+const updateInfoLink = () => {
+  const typeInput = document.getElementById('type').value;
+  var info = document.getElementById('info');
+
+  switch (typeInput) {
+    case "CALL":
+      info.innerHTML = "More info on calls"
+      info.href = "https://www.investopedia.com/terms/c/calloption.asp"
+      break;
+    case "PUT":
+      info.innerHTML = "More info on puts"
+      info.href = "https://www.investopedia.com/terms/p/putoption.asp"
+      break;
+    case "STRADDLE":
+      info.innerHTML = "More info on straddles"
+      info.href = "https://www.investopedia.com/terms/s/straddle.asp"
+      break;
+    case "STRANGLE":
+      info.innerHTML = "More info on strangles"
+      info.href = "https://www.investopedia.com/terms/s/strangle.asp"
+      break;
+    case "BUTTERFLY":
+      info.innerHTML = "More info on butterflies"
+      info.href = "https://www.investopedia.com/terms/b/butterflyspread.asp"
+      break;
+    case "IRONCONDOR":
+      info.innerHTML = "More info on iron condors"
+      info.href = "https://www.investopedia.com/terms/i/ironcondor.asp"
+      break;
+  }
 }
 
 const toDisplayDate = (date) => {

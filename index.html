@@ -32,30 +32,34 @@
     <label id="strikeLabel1">Strike:</label>
     <select onChange="updateStrikes()" name="strike" id="strike">
     </select>
+    <label id="arrow1" style="display:none">&#8592;</label>
     <br><br>
     <label id="strikeLabel2" style="display:none"></label>
     <select onChange="updateStrikes2()" name="strike2" id="strike2" style="display:none">
     </select>
+    <label id="arrow2" style="display:none">&#8592;</label>
     <br><br>
     <label id="strikeLabel3" style="display:none"></label>
-    <select name="strike3" id="strike3" style="display:none">
+    <select onChange="updateStrikes3()" name="strike3" id="strike3" style="display:none">
     </select>
+    <label id="arrow3" style="display:none">&#8592;</label>
     <br><br>
     <label id="strikeLabel4" style="display:none"></label>
     <select name="strike4" id="strike4" style="display:none">
     </select>
+    <label id="arrow4" style="display:none">&#8592;</label>
     <br><br>
     <button onclick="getData()">Go</button>
     <br><br>
     <label id='out'></label>
     <br><br><br><br><br><br>
-    <label id='description'>[Insert Description]<label>
+    <a id="info" target="_blank" href="https://www.investopedia.com/terms/c/calloption.asp">More info on calls</a>
   </div>
   <div class="ct-chart" id="graph"></div>
-    <script src="./graph.js"></script>
-    <script src="./client.js"></script>
-    <script src="./chartist-plugin-threshold.js"></script>
-    <script src="./chartist-plugin-axistitle.js"></script>
+  <script src="./graph.js"></script>
+  <script src="./client.js"></script>
+  <script src="./chartist-plugin-threshold.js"></script>
+  <script src="./chartist-plugin-axistitle.js"></script>
 
 </body>
 

@@ -101,7 +101,7 @@ const getStrikePrices = (dataObj) => {
         resData = dataObj.data[i].options.CALL;
       } else if (response.type === 'PUT') {
         resData = dataObj.data[i].options.PUT;
-      } else if (response.type === 'STRADDLE' || response.type === 'STRANGLE') {
+      } else if (response.type === 'STRADDLE' || response.type === 'STRANGLE' || response.type === 'IRONCONDOR') {
         resData = dataObj.data[i].options.CALL;
         resData2 = dataObj.data[i].options.PUT;
       }
@@ -124,7 +124,7 @@ const getStrikePrices = (dataObj) => {
     strikeArr = strikeArr.filter(value => strikeArr2.includes(value));
   }
   dataObj.data = strikeArr;
-  if (response.type === 'STRANGLE') {
+  if (response.type === 'STRANGLE' || response.type === 'IRONCONDOR') {
     resData2.forEach(element => {
       if (element.lastPrice) {
         strikeArr2.push(element.strike);
@@ -145,7 +145,7 @@ const getOptionPrice = (dataObj) => {
         resDataExpType = dataObj.data[i].options.CALL;
       } else if (response.type === 'PUT') {
         resDataExpType = dataObj.data[i].options.PUT;
-      } else if (response.type === 'STRADDLE' || response.type === 'STRANGLE') {
+      } else if (response.type === 'STRADDLE' || response.type === 'STRANGLE' || response.type === 'IRONCONDOR') {
         resDataExpType = dataObj.data[i].options.CALL
         resDataExpType2 = dataObj.data[i].options.PUT;
       }
@@ -155,30 +155,48 @@ const getOptionPrice = (dataObj) => {
   var strike = response.strikePrice;
   if (response.type === 'STRANGLE') strike = response.strikePrice.call;
   if (response.type === 'BUTTERFLY') strike = response.strikePrice.lowcall.toString();
+  if (response.type === 'IRONCONDOR') strike = response.strikePrice.highcall;
+
 
   for (var i = 0; i < resDataExpType.length; i++) {
     if (resDataExpType[i].strike == strike) {
-      console.log(resDataExpType[i]);
       optPrice = resDataExpType[i].lastPrice;
-      console.log(optPrice);
     }
   }
+
+  if (response.type === 'IRONCONDOR') {
+    strike = response.strikePrice.shortcall;
+    for (var i = 0; i < resDataExpType.length; i++) {
+      if (resDataExpType[i].strike == strike) {
+        optPrice = ((optPrice * 1000000) - (resDataExpType[i].lastPrice * 1000000)) / 1000000;
+      }
+    }
+    strike = response.strikePrice.lowput;
+    for (var i = 0; i < resDataExpType2.length; i++) {
+      if (resDataExpType2[i].strike == strike) {
+        optPrice = ((optPrice * 1000000) + (resDataExpType2[i].lastPrice * 1000000)) / 1000000;
+      }
+    }
+    strike = response.strikePrice.shortput;
+    for (var i = 0; i < resDataExpType2.length; i++) {
+      if (resDataExpType2[i].strike == strike) {
+        optPrice = ((optPrice * 1000000) - (resDataExpType2[i].lastPrice * 1000000)) / 1000000;
+      }
+    }
+  }
+
 
   if (response.type === 'BUTTERFLY') {
     strike = response.strikePrice.shortcall.toString();
     for (var i = 0; i < resDataExpType.length; i++) {
       if (resDataExpType[i].strike == strike) {
-        console.log(resDataExpType[i]);
-        optPrice = ((optPrice * 1000) - (resDataExpType[i].lastPrice * 2000)) / 1000;
-        console.log(optPrice);
+        optPrice = ((optPrice * 10000) - (resDataExpType[i].lastPrice * 20000)) / 10000;
       }
     }
     strike = response.strikePrice.highcall.toString();
     for (var i = 0; i < resDataExpType.length; i++) {
       if (resDataExpType[i].strike == strike) {
-        console.log(resDataExpType[i]);
-        optPrice = ((optPrice * 1000) + (resDataExpType[i].lastPrice * 1000)) / 1000;
-        console.log(optPrice);
+        optPrice = ((optPrice * 10000) + (resDataExpType[i].lastPrice * 10000)) / 10000;
       }
     }
   }
@@ -187,11 +205,11 @@ const getOptionPrice = (dataObj) => {
   if (response.type === "STRADDLE" || response.type === "STRANGLE") {
     for (var i = 0; i < resDataExpType2.length; i++) {
       if (resDataExpType2[i].strike == strike) {
-        optPrice = ((optPrice * 1000) + (resDataExpType2[i].lastPrice * 1000)) / 1000;
+        optPrice = ((optPrice * 10000) + (resDataExpType2[i].lastPrice * 10000)) / 10000;
       }
     }
   }
-
+  console.log("Final option price is: " + optPrice);
   dataObj.data = optPrice;
   returnPrice(dataObj);
 }
