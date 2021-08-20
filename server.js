@@ -250,4 +250,3 @@ const getAPIData = (obj, purpose) => {
   xhr.send();
 
 }
-
